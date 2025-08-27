@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  
+  <div class="container">
+  <h1>Tasks List</h1>
+  <input type="text" id="taskInput" placeholder="Enter task">
+  <button id="addTaskBtn">Add Task</button>
+  <ul id="taskList"></ul>
+</div>
+
+
+  <script>
+    const taskInput = document.getElementById("taskInput");
+    const addTaskBtn = document.getElementById("addTaskBtn");
+    const taskList = document.getElementById("taskList");
+    const API_URL = "http://localhost:5000/tasks";
+
+    // Load tasks on page load
+    loadTasks();
+
+    // Add new task
+    addTaskBtn.addEventListener("click", async function() {
+      const taskText = taskInput.value.trim();
+      if (taskText === "") {
+        alert("Please enter a task");
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task: taskText })
+        });
+
+        if (!response.ok) throw new Error("Failed to add task to database");
+
+        const taskID = await response.json();
+        taskInput.value = "";
+
+        // Fetch the newly added task by its ID
+        await getOnlyOneTask(taskID.id.insertId);
+      } catch (error) {
+        console.error("Error adding task:", error);
+      }
+    });
+
+    // Fetch a single task after adding
+    async function getOnlyOneTask(taskID) {
+      try {
+        const res = await fetch(`${API_URL}/${taskID}`);
+        if (!res.ok) throw new Error("Failed to fetch the added task");
+
+        const newTask = await res.json();
+        addTaskToUI(newTask);
+      } catch (error) {
+        console.error("Error fetching the added task:", error);
+      }
+    }
+
+    // delete button
+    function addTaskToUI(task) {
+      const li = document.createElement("li");
+
+      const span = document.createElement("span");
+      span.textContent = task.task;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete";
+      deleteBtn.style.marginLeft = "10px";
+      deleteBtn.addEventListener("click", () => deleteTask(task.id, li));
+
+  // --- Edit Button ---
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "Edit";
+  
+  editBtn.style.marginLeft = "10px";
+  editBtn.addEventListener("click", () => editTask(span, task.id));
+
+      li.appendChild(span);
+      li.appendChild(editBtn);
+      li.appendChild(deleteBtn);
+      taskList.appendChild(li);
+    }
+
+
+  function editTask(span, id) {
+  const oldText = span.textContent;   // save original text
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = oldText;
+
+  let cancel = false;  
+
+  span.replaceWith(input);
+  input.focus();
+
+  // --- Save on blur ---
+  input.addEventListener("blur", async () => {
+    if (cancel) return;   
+
+    const newTask = input.value.trim();
+    if (newTask) {
+      await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task: newTask })
+      });
+      span.textContent = newTask;  
+    } else {
+      span.textContent = oldText;  
+    }
+    input.replaceWith(span); 
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") input.blur();   
+    if (e.key === "Escape") {
+      cancel= true;                    
+      span.textContent = oldText;          
+      input.replaceWith(span);             
+                      
+    }
+  });
+}
+
+
+    // Delete task from DB and UI
+    async function deleteTask(id, liElement) {
+      try {
+        const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to delete task");
+
+        // Remove from UI
+        liElement.remove();
+      } catch (error) {
+        console.error("Error deleting task:", error);
+      }
+    }
+
+    // Load all tasks
+    async function loadTasks() {
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("Failed to load tasks");
+
+        const tasks = await res.json();
+        taskList.innerHTML = "";
+        tasks.forEach(t => addTaskToUI(t));
+      } catch (error) {
+        console.error("Error loading tasks:", error);
+      }
+    }
+  </script>
+</body>
+</html>

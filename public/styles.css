@@ -1,0 +1,122 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f9;
+  display: flex;
+  justify-content: center;
+  padding: 50px 20px;
+}
+
+.container {
+  background-color: #fff;
+  width: 400px;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 24px;
+}
+
+#taskInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+#taskInput:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 5px rgba(74,144,226,0.3);
+}
+
+#addTaskBtn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4a90e2;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#addTaskBtn:hover {
+  background-color: #357ab8;
+}
+
+/* Task List */
+#taskList {
+  list-style: none;
+  margin-top: 20px;
+  padding: 0;
+}
+
+#taskList li {
+  background-color: #f9f9f9;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Task text */
+#taskList li span {
+  flex-grow: 1;
+  font-size: 15px;
+}
+
+/* Edit and Delete buttons */
+#taskList li button {
+  margin-left: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* Edit button */
+#taskList li button:nth-of-type(1) {
+  background-color: #ffc107;
+  color: #333;
+}
+
+#taskList li button:nth-of-type(1):hover {
+  background-color: #e0a800;
+}
+
+/* Delete button */
+#taskList li button:nth-of-type(2) {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+#taskList li button:nth-of-type(2):hover {
+  background-color: #c0392b;
+}
+
+
+#taskList li input[type="text"] {
+  flex-grow: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
