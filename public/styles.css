@@ -120,3 +120,22 @@ h1 {
   border: 1px solid #ccc;
   font-size: 14px;
 }
+
+/* Logout Button */
+#logoutBtn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  background-color: #6c757d;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#logoutBtn:hover {
+  background-color: #5a6268;
+}

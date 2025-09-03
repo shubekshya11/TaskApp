@@ -7,14 +7,16 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  
   <div class="container">
-  <h1>Tasks List</h1>
-  <input type="text" id="taskInput" placeholder="Enter task">
-  <button id="addTaskBtn">Add Task</button>
-  <ul id="taskList"></ul>
-</div>
+    <h1>Tasks List</h1>
+    <input type="text" id="taskInput" placeholder="Enter task">
+    <button id="addTaskBtn">Add Task</button>
+    <ul id="taskList"></ul>
+  </div>
 
+  <div class="">  
+    <button id="logoutBtn">Logout</button>
+  </div>
 
   <script>
     const taskInput = document.getElementById("taskInput");
@@ -22,67 +24,61 @@
     const taskList = document.getElementById("taskList");
     const API_URL = "http://localhost:5000/tasks";
 
-    // Load tasks on page load
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
     loadTasks();
 
-    // Add new task
-    addTaskBtn.addEventListener("click", async function() {
+    // Add new task 
+    addTaskBtn.addEventListener("click", async () => {
       const taskText = taskInput.value.trim();
-      if (taskText === "") {
-        alert("Please enter a task");
-        return;
-      }
+      if (!taskText) return alert("Please enter a task");
+
+      const userId = getCookie("user_id");
+      if (!userId) return alert("You are not logged in");
 
       try {
-        const response = await fetch(API_URL, {
+        const res = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ task: taskText })
+          credentials: "include",
+          body: JSON.stringify({ task: taskText, user_id: userId })
         });
 
-        if (!response.ok) throw new Error("Failed to add task to database");
+        if (!res.ok) throw new Error("Failed to add task");
 
-        const taskID = await response.json();
-        taskInput.value = "";
+        const newTask = await res.json();
 
-        // Fetch the newly added task by its ID
-        await getOnlyOneTask(taskID.id.insertId);
-      } catch (error) {
-        console.error("Error adding task:", error);
+      
+        addTaskToUI(newTask);
+
+        taskInput.value = ""; 
+      } catch (err) {
+        console.error("Error adding task:", err);
       }
     });
 
-    // Fetch a single task after adding
-    async function getOnlyOneTask(taskID) {
-      try {
-        const res = await fetch(`${API_URL}/${taskID}`);
-        if (!res.ok) throw new Error("Failed to fetch the added task");
-
-        const newTask = await res.json();
-        addTaskToUI(newTask);
-      } catch (error) {
-        console.error("Error fetching the added task:", error);
-      }
-    }
-
-    // delete button
+    // Add task to UI 
     function addTaskToUI(task) {
       const li = document.createElement("li");
 
       const span = document.createElement("span");
       span.textContent = task.task;
 
+      // Edit button
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Edit";
+      editBtn.style.marginLeft = "10px";
+      editBtn.addEventListener("click", () => editTask(span, task.id));
+
+      // Delete button
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "Delete";
       deleteBtn.style.marginLeft = "10px";
       deleteBtn.addEventListener("click", () => deleteTask(task.id, li));
-
-  // --- Edit Button ---
-  const editBtn = document.createElement("button");
-  editBtn.textContent = "Edit";
-  
-  editBtn.style.marginLeft = "10px";
-  editBtn.addEventListener("click", () => editTask(span, task.id));
 
       li.appendChild(span);
       li.appendChild(editBtn);
@@ -90,74 +86,108 @@
       taskList.appendChild(li);
     }
 
+    // Edit task 
+    function editTask(span, taskId) {
+      const oldText = span.textContent;
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = oldText;
+      let cancel = false;
 
-  function editTask(span, id) {
-  const oldText = span.textContent;   // save original text
-  const input = document.createElement("input");
-  input.type = "text";
-  input.value = oldText;
+      span.replaceWith(input);
+      input.focus();
 
-  let cancel = false;  
+      input.addEventListener("blur", async () => {
+        if (cancel) return;
+        const newTask = input.value.trim();
+        const userId = getCookie("user_id");
+        if (!newTask || !userId) {
+          input.replaceWith(span);
+          span.textContent = oldText;
+          return;
+        }
 
-  span.replaceWith(input);
-  input.focus();
-
-  // --- Save on blur ---
-  input.addEventListener("blur", async () => {
-    if (cancel) return;   
-
-    const newTask = input.value.trim();
-    if (newTask) {
-      await fetch(`${API_URL}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task: newTask })
+        try {
+          await fetch(`${API_URL}/${taskId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ task: newTask, user_id: userId })
+          });
+          span.textContent = newTask;
+        } catch (err) {
+          console.error("Error editing task:", err);
+          span.textContent = oldText;
+        }
+        input.replaceWith(span);
       });
-      span.textContent = newTask;  
-    } else {
-      span.textContent = oldText;  
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") input.blur();
+        if (e.key === "Escape") {
+          cancel = true;
+          input.replaceWith(span);
+          span.textContent = oldText;
+        }
+      });
     }
-    input.replaceWith(span); 
-  });
 
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") input.blur();   
-    if (e.key === "Escape") {
-      cancel= true;                    
-      span.textContent = oldText;          
-      input.replaceWith(span);             
-                      
-    }
-  });
-}
+    // Delete 
+    async function deleteTask(taskId, liElement) {
+      const userId = getCookie("user_id");
+      if (!userId) return alert("You must log in first!");
 
-
-    // Delete task from DB and UI
-    async function deleteTask(id, liElement) {
       try {
-        const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Failed to delete task");
-
-        // Remove from UI
+        await fetch(`${API_URL}/${taskId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ user_id: userId })
+        });
         liElement.remove();
-      } catch (error) {
-        console.error("Error deleting task:", error);
+      } catch (err) {
+        console.error("Error deleting task:", err);
       }
     }
 
-    // Load all tasks
+    // Load all tasks for logged-in user 
     async function loadTasks() {
+      const userId = getCookie("user_id");
+      if (!userId) {
+        taskList.innerHTML = "<li>Please log in to see tasks</li>";
+        return;
+      }
+
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(`${API_URL}?user_id=${userId}`, {
+  credentials: "include" 
+});
         if (!res.ok) throw new Error("Failed to load tasks");
 
         const tasks = await res.json();
         taskList.innerHTML = "";
         tasks.forEach(t => addTaskToUI(t));
-      } catch (error) {
-        console.error("Error loading tasks:", error);
+      } catch (err) {
+        console.error("Error loading tasks:", err);
       }
     }
   </script>
+
+
+
+<script>
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  logoutBtn.addEventListener("click", () => {
+    // Delete the user_id cookie
+    document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    
+    alert("Logged out successfully!");
+
+    window.location.href = "login.html";
+  });
+</script>
+
+
 </body>
 </html>
