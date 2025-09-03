@@ -1,0 +1,86 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Page layout */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f9;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.register-container {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  padding: 28px 24px;
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 18px;
+  font-size: 24px;
+}
+
+/* Form */
+form#registerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+form#registerForm input[type="text"],
+form#registerForm input[type="password"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+form#registerForm input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74,144,226,0.15);
+}
+
+form#registerForm button[type="submit"] {
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #28a745;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+form#registerForm button[type="submit"]:hover {
+  background-color: #218838;
+}
+
+/* Helper text */
+p {
+  margin-top: 14px;
+  text-align: center;
+  color: #555;
+}
+
+p a {
+  color: #4a90e2;
+  text-decoration: none;
+}
+
+p a:hover {
+  text-decoration: underline;
+}
